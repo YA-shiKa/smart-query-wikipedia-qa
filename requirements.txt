@@ -1,0 +1,8 @@
+fastapi==0.110.0
+uvicorn==0.29.0
+wikipedia==1.4.0
+wikipedia-api==0.6.0
+transformers==4.41.2
+sentence-transformers==2.6.1
+faiss-cpu==1.7.4
+numpy==1.26.4
