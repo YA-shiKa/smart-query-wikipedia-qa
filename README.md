@@ -15,8 +15,8 @@ A lightweight Retrieval-Augmented Generation (RAG) pipeline using FastAPI, Wikip
 
 ```bash
 # Clone the repo
-git clone https://github.com/your-username/rag-pipeline.git
-cd rag-pipeline
+git clone https://github.com/YA-shiKa/smart-query-wikipedia-qa.git
+cd smart-query-wikipedia-qa
 
 # Install dependencies
 pip install -r requirements.txt
