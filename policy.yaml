@@ -1,0 +1,65 @@
+# =============================================================================
+# Guardrails policy for the Self-Healing RAG pipeline.
+# Non-engineers can edit this file to change what the system will and won't do
+# without touching any Python code. The app reloads it on every request.
+# =============================================================================
+
+# Topics the system will refuse to look up / answer questions about at all,
+# regardless of what Wikipedia says. Matched as case-insensitive substrings
+# against the user's topic + question.
+blocked_topics:
+  - "how to make a bomb"
+  - "how to make explosives"
+  - "self-harm methods"
+  - "how to synthesize"
+
+# Phrases that must never appear in a *generated answer*. If the model's
+# output matches one of these, the answer is replaced with a safe refusal
+# instead of being shown to the user, even if it were technically grounded
+# in the retrieved Wikipedia text.
+banned_output_phrases:
+  # Block any medical advice: Wikipedia articles about diseases/drugs are
+  # informational, not medical advice, so we stop the model from ever
+  # phrasing an answer as a personal diagnosis, prescription, or dosage
+  # recommendation. Users asking health questions should be pointed to a
+  # medical professional rather than given actionable medical instructions.
+  - "you should take"
+  - "recommended dosage"
+  - "your diagnosis is"
+  - "i diagnose"
+  - "you should stop taking"
+
+# If true, the UI/response must show which retrieved chunks back the answer.
+# (Enforced in the API response, not just the frontend, so API consumers get
+# the same guarantee.)
+require_citation: true
+
+# Self-healing retry budget before the system gives up and says
+# "I don't have enough information" instead of guessing.
+max_retry_attempts: 2
+
+# Fallback signal for the critic (see app/qa.py:critique_answer): sentence-
+# level cosine similarity between the answer and the retrieved context,
+# used when the answer isn't a verbatim substring of that context.
+hallucination_similarity_threshold: 0.4
+
+# Simple heuristics for detecting prompt-injection / jailbreak attempts in
+# user-supplied topic/question fields before they ever reach the LLM.
+injection_patterns:
+  - "ignore (all|the)? ?previous instructions"
+  - "ignore (all|the)? ?above"
+  - "disregard (all|your)? ?(previous|prior) instructions"
+  - "you are now"
+  - "act as (a|an) "
+  - "system prompt"
+  - "reveal your (instructions|prompt)"
+  - "jailbreak"
+  - "\\bDAN\\b"
+
+# Patterns for PII that must never be sent to the model or echoed back.
+# Kept intentionally simple (regex, not a full PII library) -- swap in a
+# dedicated PII detector for production use.
+pii_patterns:
+  credit_card: "\\b(?:\\d[ -]*?){13,16}\\b"
+  ssn: "\\b\\d{3}-\\d{2}-\\d{4}\\b"
+  email: "\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\\b"

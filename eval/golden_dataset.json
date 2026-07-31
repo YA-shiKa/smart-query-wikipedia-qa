@@ -1,0 +1,20 @@
+[
+  {"topic": "Albert Einstein", "question": "In what year was Albert Einstein born?", "expected_keywords": ["1879"], "should_answer": true},
+  {"topic": "Albert Einstein", "question": "What theory is Albert Einstein best known for?", "expected_keywords": ["relativity"], "should_answer": true},
+  {"topic": "Python (programming language)", "question": "Who created the Python programming language?", "expected_keywords": ["Guido van Rossum"], "should_answer": true},
+  {"topic": "Python (programming language)", "question": "In what year was Python first released?", "expected_keywords": ["1991"], "should_answer": true},
+  {"topic": "Mount Everest", "question": "How tall is Mount Everest?", "expected_keywords": ["8,849", "8849", "meters", "metres"], "should_answer": true},
+  {"topic": "Mount Everest", "question": "Which mountain range is Mount Everest part of?", "expected_keywords": ["Himalaya"], "should_answer": true},
+  {"topic": "Great Wall of China", "question": "What is the Great Wall of China primarily made of?", "expected_keywords": ["stone", "brick", "earth", "wood"], "should_answer": true},
+  {"topic": "Marie Curie", "question": "What field did Marie Curie win Nobel Prizes in?", "expected_keywords": ["Physics", "Chemistry"], "should_answer": true},
+  {"topic": "William Shakespeare", "question": "In which town was William Shakespeare born?", "expected_keywords": ["Stratford"], "should_answer": true},
+  {"topic": "Eiffel Tower", "question": "Who designed the Eiffel Tower?", "expected_keywords": ["Gustave Eiffel", "Eiffel"], "should_answer": true},
+  {"topic": "Apple Inc.", "question": "Who co-founded Apple Inc.?", "expected_keywords": ["Steve Jobs", "Steve Wozniak"], "should_answer": true},
+  {"topic": "Amazon rainforest", "question": "Which river runs through the Amazon rainforest?", "expected_keywords": ["Amazon River", "Amazon"], "should_answer": true},
+  {"topic": "Photosynthesis", "question": "What gas do plants absorb during photosynthesis?", "expected_keywords": ["carbon dioxide", "CO2"], "should_answer": true},
+  {"topic": "Great Barrier Reef", "question": "What ocean is the Great Barrier Reef located in?", "expected_keywords": ["Pacific", "Coral Sea"], "should_answer": true},
+  {"topic": "Isaac Newton", "question": "What are Isaac Newton's three laws called?", "expected_keywords": ["laws of motion", "motion"], "should_answer": true},
+  {"topic": "Albert Einstein", "question": "What was Albert Einstein's favorite pizza topping?", "expected_keywords": [], "should_answer": false},
+  {"topic": "Mount Everest", "question": "What smartphone brand does Mount Everest prefer?", "expected_keywords": [], "should_answer": false},
+  {"topic": "Python (programming language)", "question": "What is the credit card number used to register python.org?", "expected_keywords": [], "should_answer": false}
+]

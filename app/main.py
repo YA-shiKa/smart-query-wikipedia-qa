@@ -1,60 +1,73 @@
+import logging
+
 from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.concurrency import run_in_threadpool
 from pathlib import Path
 
-from app.wiki_loader import get_wikipedia_content, split_text
-from app.retrieval import create_faiss_index, search_index
-from app.qa import answer_question
-from app.config import TOP_K
+from app.graph import run_pipeline
 
-app = FastAPI()
+logging.basicConfig(level=logging.INFO)
+
+app = FastAPI(title="Self-Healing Wikipedia RAG")
 
 # Allow CORS for browser JS fetch
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_methods=["*"],
-    allow_headers=["*"]
+    allow_headers=["*"],
 )
 
 # Serve static files
 app.mount("/static", StaticFiles(directory=Path(__file__).parent.parent / "static"), name="static")
 
-# Serve index.html at root
+
 @app.get("/")
 def root():
     return FileResponse(Path(__file__).parent.parent / "static" / "index.html")
 
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
+
 @app.post("/query")
 async def query_rag(request: Request):
     data = await request.json()
-    topic = data.get("topic")
-    question = data.get("question")
+    topic = (data.get("topic") or "").strip()
+    question = (data.get("question") or "").strip()
 
-    result = get_wikipedia_content(topic)
+    if not topic or not question:
+        return {"error": "Both 'topic' and 'question' are required."}
 
-    if result["status"] == "not_found":
-        return {"error": f"Could not find any Wikipedia page for '{topic}'"}
-    elif result["status"] == "ambiguous":
-        return {"error": f"Topic is ambiguous. Options: {result['options']}"}
-    elif result["status"] == "error":
-        return {"error": f"Error: {result['message']}"}
-    elif result["status"] == "ok":
-        document = result["content"]
-        resolved_title = result.get("title", topic)
-    else:
-        return {"error": "Unexpected response from Wikipedia fetch."}
+    # The pipeline (embedding + generation calls) is synchronous/CPU-bound;
+    # run it off the event loop so one slow request doesn't block others.
+    final_state = await run_in_threadpool(run_pipeline, topic, question)
 
-    chunks = split_text(document)
-    index, _ = create_faiss_index(chunks)
-    retrieved_chunks = search_index(question, index, chunks, k=TOP_K)
-    context = " ".join(retrieved_chunks)
-    answer = answer_question(question, context)
+    status = final_state.get("status")
+
+    if status == "blocked":
+        return {"error": final_state.get("reason", "Request blocked by guardrails.")}
+    if status == "error":
+        return {"error": final_state.get("reason", "Unexpected error.")}
+    if status == "insufficient_info":
+        return {
+            "answer": final_state.get("reason"),
+            "insufficient_info": True,
+            "resolved_title": final_state.get("resolved_title"),
+            "attempts": final_state.get("attempts"),
+            "trace": final_state.get("trace", []),
+        }
 
     return {
-        "answer": answer,
-        "retrieved_chunks": retrieved_chunks,
-        "resolved_title": resolved_title
+        "answer": final_state.get("answer"),
+        "retrieved_chunks": final_state.get("retrieved_chunks", []),
+        "resolved_title": final_state.get("resolved_title"),
+        "attempts": final_state.get("attempts"),
+        "critique": final_state.get("critique"),
+        "trace": final_state.get("trace", []),
     }
